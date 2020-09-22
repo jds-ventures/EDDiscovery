@@ -18,11 +18,11 @@
 <script>
 export default {
   methods: {
-    toggle_fullscreen() {
-      this.$parent.toggle();
+    toggle_fullscreen () {
+      this.$parent.toggle()
     }
   }
-};
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

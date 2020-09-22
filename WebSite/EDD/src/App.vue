@@ -8,24 +8,24 @@
 </template>
 
 <script>
-import AppHeader from "./components/Header.vue";
-import AppNav from "./components/NavBar.vue";
-import AppFooter from "./components/Footer.vue";
+import AppHeader from './components/Header.vue'
+import AppNav from './components/NavBar.vue'
+import AppFooter from './components/Footer.vue'
 
 export default {
-  name: "App",
+  name: 'App',
   components: {
     AppHeader,
     AppNav,
     AppFooter
   },
-  beforeMount() {
-    this.onLoad();
+  beforeMount () {
+    this.onLoad()
   },
   methods: {
-    onLoad() {}
+    onLoad () {}
   }
-};
+}
 </script>
 
 <style>

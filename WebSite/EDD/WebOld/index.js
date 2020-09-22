@@ -13,6 +13,7 @@ function OnLoad()
 	websocket.onclose = function (evt) { onClose(evt) };
 	websocket.onmessage = function (evt) { onMessage(evt) };
     websocket.onerror = function (evt) { onError(evt) };
+    console.log(uri)
 
     highlight_nav_tab(0);
 }

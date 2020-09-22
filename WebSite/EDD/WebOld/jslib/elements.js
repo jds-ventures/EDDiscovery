@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 
-
 function CreatePara(text)
 {
     var a2 = document.createElement("p");

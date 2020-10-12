@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Home from '@/components/Home'
-import Status from '@/components/Status'
-import Grid from '@/components/Grid'
+import Home from '@/pages/Home'
+import Status from '@/pages/Status'
+import Grid from '@/pages/Grid'
 
 Vue.use(Router)
 

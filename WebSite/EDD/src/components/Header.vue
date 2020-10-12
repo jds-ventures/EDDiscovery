@@ -26,4 +26,8 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped></style>
+
+<style>
+/* Legacy EDD WebSite CSS Resources */
+@import '../../WebOld/header.css';
+</style>

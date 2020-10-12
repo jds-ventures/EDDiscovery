@@ -22,8 +22,7 @@ function FillSystemTable(jdata)
 
     var entry = jdata["entry"]
 
-    if (entry >= 0)
-    {
+    if (entry >= 0) {
         asidetable.appendChild(tablerow2tdjson(jdata, "Cmdr:", "Commander"));
         asidetable.appendChild(tablerow2tdjson(jdata, "Star System:", "SystemData", "System"));
 

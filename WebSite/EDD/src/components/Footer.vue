@@ -31,7 +31,13 @@ export default {
   methods: {
     loadMore () {
       if (this.nextRow >= 0) {
-        this.Socket.requestJournal(this.nextRow, this.loadAmount)
+        let msg = {
+          requesttype: 'journal',
+          start: this.nextRow,
+          length: this.loadAmount
+        }
+
+        this.Socket.send(JSON.stringify(msg))
       }
     }
   },

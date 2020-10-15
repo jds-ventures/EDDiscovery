@@ -81,7 +81,7 @@ export const starData = {
 
   // (4). Actions
   actions: {
-    FILL_DATA: ({commit}, payload) => {
+    HANDLE_SYSTEM_MESSAGE: ({commit}, payload) => {
       commit('resetState')
 
       let recordId = 0

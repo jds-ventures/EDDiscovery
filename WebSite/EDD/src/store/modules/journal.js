@@ -53,6 +53,7 @@ export const journal = {
     resetState: (state) => {
       state.data = []
       state.keys = []
+      state.nextRow = -9999
     }
   },
 
@@ -64,7 +65,7 @@ export const journal = {
     CLEAR_JOURNAL: ({commit}) => {
       commit('resetState')
     },
-    FILL_DATA: ({commit, state}, payload) => {
+    HANDLE_JOURNAL_MESSAGE: ({commit, state}, payload) => {
       let firstrow = payload.firstrow
 
       let rowId = payload.firstrow

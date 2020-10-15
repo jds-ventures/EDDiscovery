@@ -16,9 +16,17 @@
         <aside>
             <div id='StatusBox'>
                 <table id='Status'>
-                  <p v-if="eliteRunning === false">Elite not running</p>
+                  <p v-if='eliteRunning === false'>Elite not running</p>
+                  <td v-for='(status, index) in status' v-bind:key='index'>
+                    <div class="tooltip">
+                      <img :src='status.src' alt='' width='32' :class="{ 'entryselected' : status.enable === true}">
+                      <span class='tooltiptext'>{{status.tooltip}}</span>
+                    </div>
+                  </td>
                 </table>
-                <div id='StatusOther'></div>
+                <div id='StatusOther'>
+                  <p v-for='(status, index) in statusOther' v-bind:key='status'>{{status.text}}</p>
+                </div>
             </div>
         </aside>
 
@@ -26,7 +34,14 @@
 
     <div id='ActionBox'>
         <p>Actions</p>
-        <table id='Actions'></table>
+        <table id='Actions'>
+          <td v-for='(action, index) in actions' v-bind:key='index'>
+            <div class="tooltip">
+              <img @click='ClickAction(index, action.duration, action.socketMsg)' :src='action.src' alt='' width='32' :class="{ 'entryselected' : action.enable === true}">
+              <span class='tooltiptext'>{{action.tooltip}}</span>
+            </div>
+          </td>
+        </table>
     </div>
     <app-footer></app-footer>
   </div>
@@ -46,45 +61,29 @@ export default {
         return this.$store.getters['starData/RETRIEVE']
       }
     },
-    currentShipType: {
-      get () {
-        return this.$store.getters['indicators/CURRENT_SHIP_TYPE']
-      }
-    },
-    currentDocked: {
-      get () {
-        return this.$store.getters['indicators/CURRENT_DOCKED']
-      }
-    },
-    currentSupercruise: {
-      get () {
-        return this.$store.getters['indicators/CURRENT_SUPERCRUISE']
-      }
-    },
-    currentWing: {
-      get () {
-        return this.$store.getters['indicators/CURRENT_WING']
-      }
-    },
-    currentLanded: {
-      get () {
-        return this.$store.getters['indicators/CURRENT_LANDED']
-      }
-    },
     eliteRunning: {
       get () {
         return this.$store.getters['indicators/CURRENT_RUNNING']
       }
     },
-    indicators: {
+    statusOther: {
       get () {
-        return this.$store.getters['indicators/RETRIEVE']
+        return this.$store.getters['indicators/RETRIEVE_STATUS_OTHER']
+      }
+    },
+    status: {
+      get () {
+        return this.$store.getters['indicators/RETRIEVE_STATUS']
+      }
+    },
+    actions: {
+      get () {
+        return this.$store.getters['indicators/RETRIEVE_ACTIONS']
       }
     }
   },
   beforeCreated () {
-    this.$store.dispatch('indicators/CLEAR')
-    this.Socket.refresh()
+    // this.$store.dispatch('indicators/CLEAR')
   },
   created () {
     this.Socket.$on('open', this.onOpen)
@@ -100,344 +99,67 @@ export default {
   },
   methods: {
     onOpen (evt) {
-      this.Socket.requestStatus(-1)
-      this.Socket.requestIndicator()
+      let statusRequest = {
+        requesttype: 'status',
+        entry: -1 // -1 means send me the latest journal entry first, followed by length others.  else its the journal index
+      }
+
+      this.Socket.send(JSON.stringify(statusRequest))
+
+      let indicatorRequest = {
+        requesttype: 'indicator'
+      }
+
+      this.Socket.send(JSON.stringify(indicatorRequest))
     },
     onClose (evt) {},
     onMessage (evt) {
       let jdata = JSON.parse(evt.data)
 
+      console.log(evt)
+
       if (jdata.responsetype === 'indicator' || jdata.responsetype === 'indicatorpush') {
-        this.HandleIndicatorMessage(jdata, 'Status', 'Actions', 'StatusOther')
-        // console.log(jdata, 'Status', 'Actions', 'StatusOther')
+        this.$store.dispatch('indicators/CLEAR')
+        this.$store.dispatch('indicators/HANDLE_INDICATOR_MESSAGE', jdata)
       } else if (jdata.responsetype === 'status' || jdata.responsetype === 'statuspush') {
-        this.$store.dispatch('starData/FILL_DATA', jdata)
+        this.$store.dispatch('starData/HANDLE_SYSTEM_MESSAGE', jdata)
       }
     },
     onError (evt) {
       console.error('Web Error ' + evt.data)
     },
-    HandleIndicatorMessage (jdata, statuselement, actionelement, statusotherelement) {
-      var guifocus = jdata['GUIFocus']
-
-      if (guifocus === 'GalaxyMap') { // translate the GUI focus to appropriate true tags for the set indicator code
-        jdata['GalaxyMapOpen'] = true
-      }
-      if (guifocus === 'SystemMap') {
-        jdata['SystemMapOpen'] = true
-      }
-
-      console.log('Indicators Mod' + JSON.stringify(jdata))
-
-      var newshiptype = jdata['ShipType']
-      var newinwing = jdata['InWing'] != null && jdata['InWing'] === true
-      var newsupercruise = jdata['Supercruise'] != null && jdata['Supercruise'] === true
-      var newlanded = jdata['Landed'] != null && jdata['Landed'] === true
-      var newdocked = jdata['Docked'] != null && jdata['Docked'] === true
-
-      if (newshiptype !== this.currentshiptype || newinwing !== this.currentWing || newsupercruise !== this.currentSupercruise || newlanded !== this.currentLanded || newdocked !== this.currentDocked) {
-        this.$store.dispatch('indicators/SET_SHIP_TYPE', newshiptype)
-        this.$store.dispatch('indicators/SET_CURRENT_WING', newinwing)
-        this.$store.dispatch('indicators/SET_CURRENT_SUPERCRUISE', newsupercruise)
-        this.$store.dispatch('indicators/SET_CURRENT_LANDED', newlanded)
-        this.$store.dispatch('indicators/SET_CURRENT_DOCK', newdocked)
-        console.log(123456)
-        this.SetupIndicators(jdata, document.getElementById(statuselement), document.getElementById(actionelement))
-      }
-
-      this.SetIndicatorState(jdata, document.getElementById(statuselement))
-      this.SetIndicatorState(jdata, document.getElementById(actionelement))
-
-      if (statusotherelement != null) {
-        var tstatusother = document.getElementById(statusotherelement)
-
-        this.removeChildren(tstatusother)
-
-        if (jdata['LegalState'] != null) {
-          tstatusother.appendChild(this.CreatePara('Legal State: ' + jdata['LegalState']))
-        }
-        if (jdata['Firegroup'] >= 0 && newshiptype === 'MainShip') {
-          tstatusother.appendChild(this.CreatePara('Fire Group: ' + 'ABCDEFGHIJK'[jdata['Firegroup']]))
-        }
-        if (jdata['ValidPips']) {
-          tstatusother.appendChild(this.CreatePara('Pips: ' + 'S:' + jdata['Pips'][0] + ' E:' + jdata['Pips'][1] + ' W:' + jdata['Pips'][2]))
-        }
-        if (jdata['ValidPosition']) {
-          tstatusother.appendChild(this.CreatePara('Pos: ' + jdata['Position'][0] + ', ' + jdata['Position'][1]))
-          if (jdata['ValidAltitude']) {
-            var alt = jdata['Position'][2]
-            if (alt > 5000) {
-              tstatusother.appendChild(this.CreatePara('Alt: ' + (alt / 1000.0) + 'km'))
-            } else {
-              tstatusother.appendChild(this.CreatePara('Alt: ' + alt + 'm'))
-            }
-          }
-          if (jdata['ValidHeading']) {
-            tstatusother.appendChild(this.CreatePara('Hdr: ' + jdata['Position'][3]))
-          }
-        }
-        if (jdata['ValidPlanetRadius']) {
-          tstatusother.appendChild(this.CreatePara('Radius: ' + jdata['PlanetRadius'] / 1000.0 + 'km'))
-        }
-      }
-    },
-    CreatePara (text) {
-      var a2 = document.createElement('p')
-      a2.innerHTML = text
-      return a2
-    },
-    removeChildren (tab) {
-      if (tab === null) return
-
-      while (tab.hasChildNodes()) {
-        tab.removeChild(tab.firstChild)
-      }
-    },
-    SetIndicatorState (jdata, tstatus) {
-      console.log(tstatus)
-      if (tstatus === null) return
-
-      tstatus.childNodes.forEach(function (x) {
-        x.childNodes.forEach(function (y) {
-          y.childNodes.forEach(function (y1) {
-            y1.childNodes.forEach(function (z) {
-              if (z.nodeName === 'IMG' && z.tag != null) {
-                console.log('Entry is ' + z.nodeName + ' ' + z.tag)
-                var indicator = z.tag[0]
-                if (indicator != null) { // presuming this works if z.tag is not defined.
-                  // console.log('..1 ' + z.tag + ' value is ' + jdata[z.tag])
-                  if (jdata[indicator] != null && jdata[indicator] === true) {
-                    z.classList.add('entryselected') // using a class means it does not mess up all the other properties.
-                  } else {
-                    z.classList.remove('entryselected')
-                  }
-                }
-              }
-            })
-          })
-        })
-      })
-    },
-    SetupIndicators (jdata, tstatus, tactions) {
-      this.removeChildren(tstatus)
-      this.removeChildren(tactions)
-
-      var innormalspace = !this.currentLanded && !this.currentDocked && !this.currentSupercruise
-      var notdockedlanded = !this.currentDocked && !this.currentLanded
-      let actionlist = []
-      let statuslist = []
-
-      console.log('Create Indicators with L:' + this.currentLanded + ' D:' + this.currentDocked + ' N:' + innormalspace + ' W:' + this.currentWing + ' S:' + this.currentSupercruise)
-
-      if (this.currentshiptype === 'MainShip') {
-        this.$store.dispatch('indicators/SET_RUNNING_STATE', true)
-
-        statuslist = [
-          this.CreateIndicator('Docked'), this.CreateIndicator('Landed'), this.CreateIndicator('ShieldsUp'),
-          this.CreateIndicator('InWing'), this.CreateIndicator('ScoopingFuel', this.currentSupercruise),
-          this.CreateIndicator('LowFuel'), this.CreateIndicator('OverHeating'), this.CreateIndicator('IsInDanger', !this.currentDocked, 'In Danger'),
-          this.CreateIndicator('BeingInterdicted', this.currentSupercruise), this.CreateIndicator('FsdCharging', notdockedlanded),
-          this.CreateIndicator('FsdMassLocked', innormalspace),
-          this.CreateIndicator('FsdCooldown', this.currentSupercruise || innormalspace)
-        ]
-
-        tstatus.appendChild(this.tablerowmultitdlist(statuslist))
-
-        actionlist = [
-          this.CreateAction('LandingGear', 'LandingGearToggle', innormalspace), // reported..
-          this.CreateAction('Lights', 'ShipSpotLightToggle'),
-          this.CreateAction('FlightAssist', 'ToggleFlightAssist', innormalspace),
-          this.CreateAction('HardpointsDeployed', 'DeployHardpointToggle', notdockedlanded),
-
-          this.CreateAction('CargoScoopDeployed', 'ToggleCargoScoop', innormalspace),
-          this.CreateAction('NightVision', 'NightVisionToggle', innormalspace),
-
-          this.CreateAction('UseBoostJuice', null, innormalspace, 1500),
-          this.CreateAction('ShieldCell', 'UseShieldCell', innormalspace, 1000),
-          this.CreateAction('Chaff', 'FireChaffLauncher', innormalspace, 1000),
-          this.CreateAction('HeatSink', 'DeployHeatSink', innormalspace, 1000),
-          this.CreateAction('ChargeECM', null, innormalspace, 1500),
-
-          this.CreateAction('Supercruise', null, notdockedlanded), // reported
-          this.CreateActionButton('HyperSuperCombination', null, notdockedlanded), // not reported
-          this.CreateActionButton('OrbitLinesToggle'),
-
-          this.CreateActionButton('CyclePreviousTarget'),
-          this.CreateActionButton('CycleNextTarget'),
-          this.CreateActionButton('SelectHighestThreat', null, innormalspace),
-          this.CreateActionButton('CyclePreviousHostileTarget', null, innormalspace),
-          this.CreateActionButton('CycleNextHostileTarget', null, innormalspace),
-
-          this.CreateActionButton('CyclePreviousSubsystem', null, innormalspace),
-          this.CreateActionButton('CycleNextSubsystem', null, innormalspace),
-
-          this.CreateActionButton('TargetWingman0', null, this.currentWing),
-          this.CreateActionButton('TargetWingman1', null, this.currentWing),
-          this.CreateActionButton('TargetWingman2', null, this.currentWing),
-          this.CreateActionButton('SelectTargetsTarget', null, this.currentWing),
-          this.CreateActionButton('WingNavLock', null, this.currentWing),
-
-          this.CreateActionButton('TargetNextRouteSystem', null, this.currentSupercruise),
-
-          this.CreateActionButton('CycleFireGroupPrevious'),
-          this.CreateActionButton('CycleFireGroupNext'),
-
-          this.CreateActionButton('IncreaseSystemsPower', null, !this.currentDocked),
-          this.CreateActionButton('IncreaseEnginesPower', null, !this.currentDocked),
-          this.CreateActionButton('IncreaseWeaponsPower', null, !this.currentDocked),
-          this.CreateActionButton('ResetPowerDistribution', null, !this.currentDocked),
-
-          this.CreateActionButton('OrderDefensiveBehaviour', null, innormalspace),
-          this.CreateActionButton('OrderAggressiveBehaviour', null, innormalspace),
-          this.CreateActionButton('OrderFocusTarget', null, innormalspace),
-          this.CreateActionButton('OrderHoldFire', null, innormalspace),
-          this.CreateActionButton('OrderHoldPosition', null, innormalspace),
-          this.CreateActionButton('OrderFollow', null, innormalspace),
-          this.CreateActionButton('OrderRequestDock', null, innormalspace),
-          this.CreateActionButton('OpenOrders', null, innormalspace),
-
-          this.CreateAction('GalaxyMapOpen'),
-          this.CreateAction('SystemMapOpen'),
-          this.CreateActionButton('Screenshot', 'F10', true, 'Screen Shot'),
-
-          this.CreateAction('SilentRunning', 'ToggleButtonUpInput', innormalspace, 0, true, 'Silent Running')
-        ]
-
-        tactions.appendChild(this.tablerowmultitdlist(actionlist))
-      } else if (this.currentshiptype === 'SRV') {
-        this.$store.dispatch('indicators/SET_RUNNING_STATE', true)
-
-        statuslist = [
-          this.CreateIndicator('SrvUnderShip'), this.CreateIndicator('LowFuel'), this.CreateIndicator('ShieldsUp')
-        ]
-
-        actionlist = [
-          this.CreateAction('SrvHandbrake', 'AutoBreakBuggyButton'),
-          this.CreateAction('SrvTurret', 'ToggleBuggyTurretButton'),
-          this.CreateAction('SrvDriveAssist', 'ToggleDriveAssist'),
-          this.CreateAction('Lights', 'HeadlightsBuggyButton'),
-
-          this.CreateActionButton('RecallDismissShip', 'F10'),
-
-          this.CreateActionButton('IncreaseSystemsPower'),
-          this.CreateActionButton('IncreaseEnginesPower'),
-          this.CreateActionButton('IncreaseWeaponsPower'),
-          this.CreateActionButton('ResetPowerDistribution'),
-
-          this.CreateAction('GalaxyMapOpen'),
-          this.CreateAction('SystemMapOpen'),
-          this.CreateActionButton('Screenshot', 'F10', true, 'Screen Shot')
-        ]
-
-        tstatus.appendChild(this.tablerowmultitdlist(statuslist))
-        tactions.appendChild(this.tablerowmultitdlist(actionlist))
-      } else if (this.currentshiptype === 'Fighter') {
-        this.$store.dispatch('indicators/SET_RUNNING_STATE', true)
-
-        statuslist = [
-          this.CreateIndicator('ShieldsUp')
-        ]
-
-        actionlist = [
-          this.CreateAction('Lights', 'ShipSpotLightToggle'),
-          this.CreateAction('FlightAssist', 'ToggleFlightAssist'),
-          this.CreateAction('NightVision', 'NightVisionToggle'),
-          this.CreateActionButton('IncreaseSystemsPower'),
-          this.CreateActionButton('IncreaseEnginesPower'),
-          this.CreateActionButton('IncreaseWeaponsPower'),
-          this.CreateActionButton('ResetPowerDistribution'),
-
-          this.CreateActionButton('OrderDefensiveBehaviour'),
-          this.CreateActionButton('OrderAggressiveBehaviour'),
-          this.CreateActionButton('OrderFocusTarget'),
-          this.CreateActionButton('OrderHoldFire'),
-          this.CreateActionButton('OrderHoldPosition'),
-          this.CreateActionButton('OrderFollow'),
-          this.CreateActionButton('OrderRequestDock'),
-          this.CreateActionButton('OpenOrders'),
-
-          this.CreateAction('GalaxyMapOpen'),
-          this.CreateAction('SystemMapOpen'),
-          this.CreateActionButton('Screenshot', 'F10', true, 'Screen Shot')
-        ]
-
-        tstatus.appendChild(this.tablerowmultitdlist(statuslist))
-        tactions.appendChild(this.tablerowmultitdlist(actionlist))
-      } else {
-        console.log('Elite not running')
-        this.$store.dispatch('indicators/SET_RUNNING_STATE', false)
-      }
-    },
-    CreateIndicator (itype, enableit = true, tooltip = null) {
-      if (enableit) {
-        if (tooltip == null) {
-          tooltip = itype.replace(/([a-z](?=[A-Z]))/g, '$1 ')
-        }
-
-        return console.log('http://192.168.0.15:6502/statusicons/' + itype + '.png', itype, 64, null, [itype, null], tooltip)
-      } else {
-        return null
-      }
-    },
-    CreateAction (name, bindingname = null, enableit = true, flashit = 0, confirmit = false, tooltip = null) {
-      if (enableit) {
-        if (bindingname == null) {
-          bindingname = name
-        }
-
-        if (tooltip == null) {
-          tooltip = bindingname.replace(/([a-z](?=[A-Z]))/g, '$1 ')
-        }
-        // console.log('create action image name:' + itype + ' a:' + action + ' ')
-        return console.log('http://192.168.0.15:6502/statusicons/' + name + '.png', name, 64, this.ClickActionItem(), [name, bindingname, flashit, confirmit], tooltip)
-      } else {
-        return null
-      }
-    },
-    ClickActionItem (e) {
-      if (e.target.tag[3]) {
-        if (!confirm('Confirm ' + e.target.tag[0])) {
-          return
-        }
-      }
-
-      console.log('Press key ' + e.target.tag[1])
-      var msg = {
+    ClickAction (id, duration, msg) {
+      var keyPressRequest = {
         requesttype: 'presskey',
-        key: e.target.tag[1]
+        key: msg
       }
 
-      this.Socket.send(JSON.stringify(msg))
 
-      if (e.target.tag[2] > 0) {
-        e.target.classList.add('entryselected') // using a class means it does not mess up all the other properties.
-        console.log('Flash it! ' + e.target.tag[2])
-        setTimeout(function (f) {
-          console.log('Flash off!')
-          e.target.classList.remove('entryselected') // using a class means it does not mess up all the other properties.
-        }, e.target.tag[2])
-      }
-    },
-    CreateActionButton (name, bindingname = null, enableit = true, tooltip = null) {
-      return this.CreateAction(name, bindingname, enableit, 250, null, tooltip)
-    },
-    tablerowmultitdlist (elements, classnames = null) {
-      var tr = document.createElement('tr')
+      if (duration !== null) {
+        let data = this.actions
 
-      for (var i = 0; i < elements.length; i++) {
-        if (elements[i] != null) {
-          var td = document.createElement('td')
-          tr.appendChild(td)
+        let scope = this
 
-          if (classnames !== null) {
-            elements[i].classList.add(classnames[i])
+        let counter = 0
+
+        data.forEach(action => {
+          if (counter === id) {
+            console.log(5555, id)
+            data[id].enable = true
+
+            this.$store.dispatch('indicators/UPDATE_ACTION_STATUS', data)
+
+            setTimeout(function (f) {
+              data[id].enable = false
+
+              scope.$store.dispatch('indicators/UPDATE_ACTION_STATUS', data)
+            }, duration)
           }
-
-          td.appendChild(elements[i])
-        }
+          counter++
+        })
       }
 
-      return tr
+      this.Socket.send(JSON.stringify(keyPressRequest))
     }
   }
 }
@@ -446,4 +168,5 @@ export default {
 <!-- Add 'scoped' attribute to limit CSS to this component only -->
 <style>
 @import '../../WebOld/Status/status.css';
+@import '../../WebOld/tooltip.css';
 </style>

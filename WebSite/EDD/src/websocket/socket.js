@@ -12,54 +12,43 @@ if (loc.protocol === 'https:') {
 // Set manually for dev purposes
 uri += '//' + '192.168.0.15:6502' + '/'
 
-let socket = new WebSocket(uri, 'EDDJSON')
+let socket
 
 const emitter = new Vue({
   methods: {
-    refresh () {
+    send (message) {
+      if (socket.readyState === 1) socket.send(message)
+    },
+    close () {
+      if (socket.readyState === 1) {
+        emitter.$emit('message', 'Closing Socket.')
+        socket.close()
+        socket = null // prevent memory leak
+      }
+    },
+    connect () {
       socket = new WebSocket(uri, 'EDDJSON')
-    },
-    requestJournal (start, len) {
-      let msg = {
-        requesttype: 'journal',
-        start: start,
-        length: len
+
+      socket.onclose = function (evt) {
+        emitter.$emit('close', evt)
       }
 
-      socket.send(JSON.stringify(msg))
-    },
-    requestStatus (entryno) {
-      let msg = {
-        requesttype: 'status',
-        entry: entryno // -1 means send me the latest journal entry first, followed by length others.  else its the journal index
+      socket.onmessage = function (evt) {
+        emitter.$emit('message', evt)
       }
 
-      socket.send(JSON.stringify(msg))
-    },
-    requestIndicator () {
-      var msg = {
-        requesttype: 'indicator'
+      socket.onerror = function (err) {
+        emitter.$emit('error', err)
       }
 
-      socket.send(JSON.stringify(msg))
+      socket.onopen = function (evt) {
+        emitter.$emit('open', evt)
+      }
+      emitter.$emit('message', 'Openning Socket.')
     }
   }
 })
 
-socket.onopen = function (evt) {
-  emitter.$emit('open', evt)
-}
-
-socket.onclose = function (evt) {
-  emitter.$emit('close', evt)
-}
-
-socket.onmessage = function (evt) {
-  emitter.$emit('message', evt)
-}
-
-socket.onerror = function (err) {
-  emitter.$emit('error', err)
-}
+emitter.connect()
 
 export default emitter

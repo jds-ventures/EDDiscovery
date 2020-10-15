@@ -39,9 +39,6 @@ export default {
   components: {
     AppFooter
   },
-  beforeCreated () {
-    this.Socket.refresh()
-  },
   created () {
     this.Socket.$on('open', this.onOpen)
     this.Socket.$on('close', this.onClose)
@@ -57,7 +54,8 @@ export default {
   computed: {
     journals: {
       get () {
-        return this.$store.getters['journal/RETRIEVE']
+        const data = this.$store.getters['journal/RETRIEVE']
+        return data.sort((a, b) => b.id - a.id)
       }
     },
     starData: {
@@ -73,25 +71,36 @@ export default {
   },
   methods: {
     onOpen (evt) {
-      this.Socket.requestJournal(-1, 50)
-      this.Socket.requestStatus(-1)
+      let journalRequest = {
+        requesttype: 'journal',
+        start: -1,
+        length: 50
+      }
+
+      this.Socket.send(JSON.stringify(journalRequest))
+
+      let statusRequest = {
+        requesttype: 'status',
+        entry: -1 // -1 means send me the latest journal entry first, followed by length others.  else its the journal index
+      }
+
+      this.Socket.send(JSON.stringify(statusRequest))
     },
     onClose (evt) {},
     onMessage (evt) {
       let jdata = JSON.parse(evt.data)
       switch (jdata.responsetype) {
         case 'journalrequest':
-          this.$store.dispatch('journal/FILL_DATA', jdata)
+          this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
           break
         case 'journalpush':
-          this.$store.dispatch('journal/FILL_DATA', jdata)
+          this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
           break
         case 'journalrefresh':
-          this.$store.dispatch('journal/CLEAR_JOURNAL')
-          this.$store.dispatch('journal/FILL_DATA', jdata)
+          this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
           break
         case 'status':
-          this.$store.dispatch('starData/FILL_DATA', jdata)
+          this.$store.dispatch('starData/HANDLE_SYSTEM_MESSAGE', jdata)
           break
       }
     },
@@ -99,7 +108,12 @@ export default {
       console.error(evt.data)
     },
     ClickJournalItem (entryno) {
-      this.Socket.requestStatus(entryno)
+      let statusRequest = {
+        requesttype: 'status',
+        entry: entryno // -1 means send me the latest journal entry first, followed by length others.  else its the journal index
+      }
+
+      this.Socket.send(JSON.stringify(statusRequest))
     }
   }
 }

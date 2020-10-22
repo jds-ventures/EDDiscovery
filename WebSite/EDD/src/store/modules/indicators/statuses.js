@@ -28,38 +28,38 @@ const statuses = {
     {
       title: 'LowFuel',
       active: true,
-      tooltip: ''
+      tooltip: 'Low Fuel'
     },
     {
       title: 'OverHeating',
       active: 'notdockedlanded',
-      tooltip: ''
+      tooltip: 'Over Heating'
     },
     {
       title: 'IsInDanger',
       active: 'notdockedlanded',
-      tooltip: ''
+      tooltip: 'In Danger'
     },
     {
       title: 'BeingInterdicted',
       active: 'Supercruise',
-      tooltip: ''
+      tooltip: 'Being Interdicted'
     },
     {
       title: 'FsdCharging',
       active: 'notdockedlanded',
-      tooltip: ''
+      tooltip: 'Fsd Charging'
     },
     {
       title: 'FsdMassLocked',
       active: 'innormalspace',
-      tooltip: ''
+      tooltip: 'Fsd Mass Locked'
     },
     {
       title: 'FsdCooldown',
       active: 'notdockedlanded',
-      tooltip: ''
-    },
+      tooltip: 'Fsd Cooldown'
+    }
   ],
   SRV: [
     {

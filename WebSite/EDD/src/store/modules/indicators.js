@@ -221,12 +221,9 @@ export const indicators = {
     SETUP_INDICATORS: ({commit, state}, payload) => {
       const innormalspace = !state.currentLanded && !state.currentDocked && !state.currentSupercruise
       const notdockedlanded = !state.currentDocked && !state.currentLanded
-      let actionlist = []
 
-      if (state.currentShipType === 'MainShip') {
+      if (state.currentShipType !== 'None') {
         commit('setRunningState', true)
-
-        console.log(1234, payload)
 
         // Cycle through all possible Indicator types for Current Ship Type and displays what is required
         statuses[state.currentShipType].forEach(status => {
@@ -250,6 +247,7 @@ export const indicators = {
           })
         })
 
+        // Cycle through all possible Actions for Current Ship Type and displays what is required
         actions[state.currentShipType].forEach(status => {
           let isActive
 
@@ -259,349 +257,44 @@ export const indicators = {
             isActive = notdockedlanded
           } else if (status.active === 'innormalspace') {
             isActive = innormalspace
+          } else if (status.active === 'inwing') {
+            isActive = payload.InWing
+          } else if (status.active === 'insupercruise') {
+            isActive = payload.Supercruise
+          } else if (status.active === 'landed') {
+            isActive = payload.Landed
           } else {
             isActive = payload[status.active]
           }
 
+          let focus, enableIt
+
+          // Handle Toggle for if Map is open
+          if (status.title === 'SystemMap' || status.title === 'GalaxyMap') {
+            focus = payload['GUIFocus']
+
+            if (focus.contains('SystemMap')) {
+              enableIt = true
+            } else if (focus.contains('GalaxyMap')) {
+              enableIt = true
+            } else {
+              enableIt = false
+            }
+          } else {
+            enableIt = payload[status.title]
+          }
+
+          console.log(payload)
+
           commit('createAction', {
             title: status.title,
-            enableIt: payload[status.title],
+            enableIt: enableIt,
             tooltip: status.tooltip,
             socketMsg: status.socketMsg,
             active: isActive,
             duration: status.duration
           })
         })
-
-        /*
-
-        commit('createAction', {
-          iType: 'ChargeECM',
-          enableIt: payload.ChargeECM,
-          toolTip: 'ChargeECM',
-          active: innormalspace,
-          duration: 1500
-        })
-
-        commit('createAction', {
-          iType: 'Supercruise',
-          enableIt: payload.Supercruise,
-          toolTip: 'Supercruise',
-          active: notdockedlanded,
-          duration: null
-        })
-
-        commit('createAction', {
-          iType: 'HyperSuperCombination',
-          enableIt: false,
-          toolTip: 'HyperSuperCombination',
-          active: notdockedlanded,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OrbitLinesToggle',
-          enableIt: false,
-          toolTip: 'OrbitLinesToggle',
-          active: notdockedlanded,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'CyclePreviousTarget',
-          enableIt: false,
-          toolTip: 'CyclePreviousTarget',
-          active: notdockedlanded,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'CycleNextTarget',
-          enableIt: false,
-          toolTip: 'CycleNextTarget',
-          active: notdockedlanded,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'SelectHighestThreat',
-          enableIt: false,
-          toolTip: 'SelectHighestThreat',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'CyclePreviousHostileTarget',
-          enableIt: false,
-          toolTip: 'CyclePreviousHostileTarget',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'CycleNextHostileTarget',
-          enableIt: false,
-          toolTip: 'CycleNextHostileTarget',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'CyclePreviousSubsystem',
-          enableIt: false,
-          toolTip: 'CyclePreviousSubsystem',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'CycleNextSubsystem',
-          enableIt: false,
-          toolTip: 'CycleNextSubsystem',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'TargetWingman0',
-          enableIt: false,
-          toolTip: 'TargetWingman0',
-          active: payload.InWing,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'TargetWingman1',
-          enableIt: false,
-          toolTip: 'TargetWingman1',
-          active: payload.InWing,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'TargetWingman2',
-          enableIt: false,
-          toolTip: 'TargetWingman2',
-          active: payload.InWing,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'SelectTargetsTarget',
-          enableIt: false,
-          toolTip: 'SelectTargetsTarget',
-          active: payload.InWing,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'WingNavLock',
-          enableIt: false,
-          toolTip: 'WingNavLock',
-          active: payload.InWing,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'TargetNextRouteSystem',
-          enableIt: false,
-          toolTip: 'TargetNextRouteSystem',
-          active: payload.Supercruise,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'CycleFireGroupPrevious',
-          enableIt: false,
-          toolTip: 'CycleFireGroupPrevious',
-          active: notdockedlanded,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'CycleFireGroupNext',
-          enableIt: false,
-          toolTip: 'CycleFireGroupNext',
-          active: notdockedlanded,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'IncreaseSystemsPower',
-          enableIt: false,
-          toolTip: 'IncreaseSystemsPower',
-          active: notdockedlanded,
-          duration: 500
-        })
-        commit('createAction', {
-          iType: 'IncreaseEnginesPower',
-          enableIt: false,
-          toolTip: 'IncreaseEnginesPower',
-          active: notdockedlanded,
-          duration: 500
-        })
-        commit('createAction', {
-          iType: 'IncreaseWeaponsPower',
-          enableIt: false,
-          toolTip: 'IncreaseWeaponsPower',
-          active: notdockedlanded,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'ResetPowerDistribution',
-          enableIt: false,
-          toolTip: 'ResetPowerDistribution',
-          active: notdockedlanded,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OrderDefensiveBehaviour',
-          enableIt: false,
-          toolTip: 'OrderDefensiveBehaviour',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OrderAggressiveBehaviour',
-          enableIt: false,
-          toolTip: 'OrderAggressiveBehaviour',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OrderFocusTarget',
-          enableIt: false,
-          toolTip: 'OrderFocusTarget',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OrderHoldFire',
-          enableIt: false,
-          toolTip: 'OrderHoldFire',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OrderHoldPosition',
-          enableIt: false,
-          toolTip: 'OrderHoldPosition',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OrderFollow',
-          enableIt: false,
-          toolTip: 'OrderFollow',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OrderRequestDock',
-          enableIt: false,
-          toolTip: 'OrderRequestDock',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'OpenOrders',
-          enableIt: false,
-          toolTip: 'OpenOrders',
-          active: innormalspace,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'GalaxyMapOpen',
-          enableIt: false,
-          toolTip: 'GalaxyMapOpen',
-          active: true,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'SystemMapOpen',
-          enableIt: false,
-          toolTip: 'SystemMapOpen',
-          active: true,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'Screenshot',
-          enableIt: false,
-          toolTip: 'F10',
-          active: true,
-          duration: 500
-        })
-
-        commit('createAction', {
-          iType: 'SilentRunning',
-          enableIt: false,
-          toolTip: 'ToggleButtonUpInput',
-          active: innormalspace,
-          duration: 500
-        })
-
-        */
-
-      } else if (state.currentShipType === 'SRV') {
-
-        actionlist = [
-          CreateAction('SrvHandbrake', 'AutoBreakBuggyButton'),
-          CreateAction('SrvTurret', 'ToggleBuggyTurretButton'),
-          CreateAction('SrvDriveAssist', 'ToggleDriveAssist'),
-          CreateAction('Lights', 'HeadlightsBuggyButton'),
-
-          CreateActionButton('RecallDismissShip', 'F10'),
-
-          CreateActionButton('IncreaseSystemsPower'),
-          CreateActionButton('IncreaseEnginesPower'),
-          CreateActionButton('IncreaseWeaponsPower'),
-          CreateActionButton('ResetPowerDistribution'),
-
-          CreateAction('GalaxyMapOpen'),
-          CreateAction('SystemMapOpen'),
-          CreateActionButton('Screenshot', 'F10', true, 'Screen Shot')
-        ]
-
-        tactions.appendChild(tablerowmultitdlist(actionlist))
-      } else if (state.currentShipType === 'Fighter') {
-
-        actionlist = [
-          CreateAction('Lights', 'ShipSpotLightToggle'),
-          CreateAction('FlightAssist', 'ToggleFlightAssist'),
-          CreateAction('NightVision', 'NightVisionToggle'),
-          CreateActionButton('IncreaseSystemsPower'),
-          CreateActionButton('IncreaseEnginesPower'),
-          CreateActionButton('IncreaseWeaponsPower'),
-          CreateActionButton('ResetPowerDistribution'),
-
-          CreateActionButton('OrderDefensiveBehaviour'),
-          CreateActionButton('OrderAggressiveBehaviour'),
-          CreateActionButton('OrderFocusTarget'),
-          CreateActionButton('OrderHoldFire'),
-          CreateActionButton('OrderHoldPosition'),
-          CreateActionButton('OrderFollow'),
-          CreateActionButton('OrderRequestDock'),
-          CreateActionButton('OpenOrders'),
-
-          CreateAction('GalaxyMapOpen'),
-          CreateAction('SystemMapOpen'),
-          CreateActionButton('Screenshot', 'F10', true, 'Screen Shot')
-        ]
-
-        tactions.appendChild(tablerowmultitdlist(actionlist))
       } else {
         commit('setRunningState', false)
       }

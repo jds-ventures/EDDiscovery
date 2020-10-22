@@ -39,18 +39,6 @@ export default {
   components: {
     AppFooter
   },
-  created () {
-    this.Socket.$on('open', this.onOpen)
-    this.Socket.$on('close', this.onClose)
-    this.Socket.$on('message', this.onMessage)
-    this.Socket.$on('error', this.onError)
-  },
-  beforeDestroy () {
-    this.Socket.$off('open', this.onOpen)
-    this.Socket.$off('close', this.onClose)
-    this.Socket.$off('message', this.onMessage)
-    this.Socket.$off('error', this.onError)
-  },
   computed: {
     journals: {
       get () {
@@ -70,43 +58,6 @@ export default {
     }
   },
   methods: {
-    onOpen (evt) {
-      let journalRequest = {
-        requesttype: 'journal',
-        start: -1,
-        length: 50
-      }
-
-      this.Socket.send(JSON.stringify(journalRequest))
-
-      let statusRequest = {
-        requesttype: 'status',
-        entry: -1 // -1 means send me the latest journal entry first, followed by length others.  else its the journal index
-      }
-
-      this.Socket.send(JSON.stringify(statusRequest))
-    },
-    onClose (evt) {},
-    onMessage (evt) {
-      let jdata = JSON.parse(evt.data)
-      switch (jdata.responsetype) {
-        case 'journalrequest':
-          this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
-          break
-        case 'journalpush':
-          this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
-          break
-        case 'journalrefresh':
-          this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
-          break
-        case 'status':
-          this.$store.dispatch('starData/HANDLE_SYSTEM_MESSAGE', jdata)
-          break
-      }
-    },
-    onError (evt) {
-      console.error(evt.data)
-    },
     ClickJournalItem (entryno) {
       let statusRequest = {
         requesttype: 'status',

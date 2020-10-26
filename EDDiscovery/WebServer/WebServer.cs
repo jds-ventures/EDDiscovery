@@ -575,6 +575,8 @@ namespace EDDiscovery.WebServer
 
                 string keyname = (string)message["key"];
 
+                response["keyname"] = keyname;
+
                 var bindings = discoveryform.ActionController.FrontierBindings;
 
                 string pname = "elitedangerous64";

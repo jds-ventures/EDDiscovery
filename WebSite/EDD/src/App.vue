@@ -1,5 +1,5 @@
 <template>
-  <fullscreen :background='fullscreenBgCol' id='app'>
+  <fullscreen style="overflow: hidden;" :background="'#000000'" id='app'>
     <app-header></app-header>
     <app-nav></app-nav>
     <router-view />
@@ -12,11 +12,6 @@ import AppNav from './components/NavBar.vue'
 
 export default {
   name: 'App',
-  data () {
-    return {
-      fullscreenBgCol: '#000000'
-    }
-  },
   components: {
     AppHeader,
     AppNav
@@ -59,7 +54,7 @@ export default {
     onClose (evt) {},
     onMessage (evt) {
       const jdata = JSON.parse(evt.data)
-
+      console.log(jdata)
       if (jdata.responsetype === 'journalrequest' || jdata.responsetype === 'journalpush' || jdata.responsetype === 'journalrefresh') {
         this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
       } else if (jdata.responsetype === 'status' || jdata.responsetype === 'statuspush') {

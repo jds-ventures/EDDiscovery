@@ -165,7 +165,7 @@ nav * a
 
 .home-wrapper article
 {
-    height: 800px;
+    height: calc(100vh - 200px);
     overflow: auto;
     margin-right: 310px;
 }
@@ -269,13 +269,13 @@ nav * a
     font-style: italic;
 }
 
-.tooltip
+.home-wrapper .tooltip
 {
     display: inline;
 }
 
 /* Tooltip text - you should position it to your satisfaction */
-.tooltip .tooltiptext
+.home-wrapper .tooltip .tooltiptext
 {
     visibility: hidden;
     color: orange;
@@ -288,7 +288,229 @@ nav * a
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext
+.home-wrapper .tooltip:hover .tooltiptext
+{
+    transition-delay: 500ms;
+    transition-duration: 2000ms;
+    visibility: visible;
+}
+
+.grid-wrapper #StatusBox, #ActionBox
+{
+    background-color: black;
+    margin-top: 0.5em;
+    width: 100%;
+}
+
+.grid-wrapper #ActionBox
+{
+    border: 2px solid #ffac28;
+}
+
+/* the p element can hold the name of the box, move it relative to give a inline label */
+
+.grid-wrapper #ActionBox p
+{
+    color: black;
+    position: relative;
+    top: -0.5em;
+    margin-left: 0.5em;
+    display: inline;
+    background-color: #ffac28;
+}
+
+.grid-wrapper #StatusBox p
+{
+    color: darkorange;
+    line-height:0.1em;
+}
+
+.grid-wrapper #ActionBox td
+{
+    display: inline; /* td's in action box are inline so flow around the areas */
+}
+.grid-wrapper #StatusBox td
+{
+    display: inline; /* td's in action box are inline so flow around the actionbox areas */
+}
+
+/* the img element is the button .. style it */
+
+.grid-wrapper #StatusBox img, #ActionBox img
+{
+    padding: 10px;
+    border: 2px solid darkorange;
+    border-radius: 8px;
+}
+
+.grid-wrapper #StatusBox img
+{
+    border-radius: 16px;
+}
+
+/* class assigned to say selected */
+
+.grid-wrapper .entryselected
+{
+    background-color: green;
+}
+
+.grid-wrapper .tooltip .tooltiptext
+{
+    margin-left: -140px;
+    margin-top: 90px;
+    width: 200px;
+}
+
+.status-wrapper
+{
+    clear: both;
+    width: 100%;
+}
+
+/* clear the contents after wrapper.. works better than clearing on next item */
+.status-wrapper::after
+{
+    content: "";
+    visibility: hidden;
+    height: 0;
+    display: block;
+    clear: both;
+}
+
+/* this holds the status table */
+
+.status-container article
+{
+    height: auto;
+    overflow: auto;
+    margin-right: 310px;
+    line-height:1em;
+}
+
+.status-container article table
+{
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.status-container article table tr
+{
+    background-color: #000000;
+    color: darkorange;
+}
+
+/* The aside holds the status indicators */
+
+.status-container aside
+{
+    float: Right;
+    width: 300px;
+    margin-left: -300px;
+}
+
+/* Common status and action box styling */
+
+.status-container #StatusBox, #ActionBox
+{
+    margin-top: 0.5em;
+    width: 100%;
+}
+
+.status-container #ActionBox
+{
+    border: 2px solid #ffac28;
+}
+
+/* the p element can hold the name of the box, move it relative to give a inline label */
+
+.status-container #ActionBox p
+{
+    color: black;
+    position: relative;
+    top: -0.5em;
+    margin-left: 0.5em;
+    display: inline;
+    background-color: #ffac28;
+}
+
+.status-container #StatusBox p
+{
+    color: darkorange;
+    line-height:0.1em;
+}
+
+.status-container #ActionBox td
+{
+    display: inline; /* td's in action box are inline so flow around the actionbox areas */
+}
+
+.status-container #StatusBox td
+{
+    display: inline;
+}
+
+/* the img element is the button .. style it */
+
+.status-container #StatusBox img, #ActionBox img
+{
+    padding: 10px;
+    border: 2px solid darkorange;
+    border-radius: 8px;
+}
+
+.status-container #StatusBox img
+{
+    border-radius: 16px;
+}
+
+/* class assigned to say selected */
+
+.status-container .entryselected
+{
+    background-color: green;
+}
+
+/* class to theme the status buttons */
+.status-container .edsmetcbuttons
+{
+    width: 6em;
+    margin: 1px 0px 1px 10px;
+    line-height: 1;
+    background-color: orange;
+    border: 1px solid darkorange;
+    color: #000;
+    text-decoration: none;
+}
+
+.status-container .tooltip .tooltiptext
+{
+    margin-left: -120px;
+    margin-top: 60px;
+    width:200px;
+}
+/* Style a item div wrapped in tooltip */
+
+.status-container .tooltip
+{
+    display: inline;
+}
+
+/* Tooltip text - you should position it to your satisfaction */
+.status-container .tooltip .tooltiptext
+{
+    visibility: hidden;
+    color: orange;
+    background-color: black;
+    border: 1px solid orange;
+    border-radius: 1px;
+    text-align: center;
+    padding: 5px 0;
+    position: absolute;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.status-container .tooltip:hover .tooltiptext
 {
     transition-delay: 500ms;
     transition-duration: 2000ms;

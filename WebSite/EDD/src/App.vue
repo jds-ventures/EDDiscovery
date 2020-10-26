@@ -54,7 +54,7 @@ export default {
     onClose (evt) {},
     onMessage (evt) {
       const jdata = JSON.parse(evt.data)
-      console.log(jdata)
+
       if (jdata.responsetype === 'journalrequest' || jdata.responsetype === 'journalpush' || jdata.responsetype === 'journalrefresh') {
         this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
       } else if (jdata.responsetype === 'status' || jdata.responsetype === 'statuspush') {

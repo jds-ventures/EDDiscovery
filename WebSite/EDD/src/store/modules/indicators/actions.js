@@ -10,7 +10,7 @@ const actions = {
     {
       title: 'Lights',
       socketMsg: 'ShipSpotLightToggle',
-      active: 'innormalspace',
+      active: true,
       tooltip: 'Ship Spot Light Toggle',
       duration: null // Set to null for toggle
     },

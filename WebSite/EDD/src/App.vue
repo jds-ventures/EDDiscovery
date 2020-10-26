@@ -55,11 +55,11 @@ export default {
     onMessage (evt) {
       const jdata = JSON.parse(evt.data)
 
-      if (jdata.responsetype === 'journalrequest' || jdata.responsetype === 'journalpush' || jdata.responsetype === 'journalrefresh') {
+      if (jdata.responsetype.includes('journal')) {
         this.$store.dispatch('journal/HANDLE_JOURNAL_MESSAGE', jdata)
-      } else if (jdata.responsetype === 'status' || jdata.responsetype === 'statuspush') {
+      } else if (jdata.responsetype.includes('status')) {
         this.$store.dispatch('starData/HANDLE_SYSTEM_MESSAGE', jdata)
-      } else if (jdata.responsetype === 'indicator' || jdata.responsetype === 'indicatorpush') {
+      } else if (jdata.responsetype.includes('indicator')) {
         this.$store.dispatch('indicators/CLEAR')
         this.$store.dispatch('indicators/HANDLE_INDICATOR_MESSAGE', jdata)
       }

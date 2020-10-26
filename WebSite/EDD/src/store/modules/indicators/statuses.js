@@ -32,7 +32,7 @@ const statuses = {
     },
     {
       title: 'OverHeating',
-      active: 'notdockedlanded',
+      active: true,
       tooltip: 'Over Heating'
     },
     {

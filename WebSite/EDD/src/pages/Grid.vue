@@ -4,25 +4,29 @@
         <article>
             <div id="StatusBox">
                 <table id="Status">
-                  <p v-if='eliteRunning === false'>Elite not running</p>
-                  <td v-for='(status, index) in status' v-bind:key='index'>
-                    <div class="tooltip">
-                      <img :src='status.src' alt='' width='64' :class="{ 'entryselected' : status.enable === true}">
-                      <span class='tooltiptext'>{{status.tooltip}}</span>
-                    </div>
-                  </td>
+                  <tr>
+                    <td v-for='(status, index) in status' v-bind:key='index'>
+                      <div class="tooltip">
+                        <img :src='status.src' alt='' width='64' :class="{ 'entryselected' : status.enable === true}">
+                        <span class='tooltiptext'>{{status.tooltip}}</span>
+                      </div>
+                    </td>
+                  </tr>
                 </table>
+                <p v-if='eliteRunning === false'>Elite not running</p>
             </div>
 
             <div id="ActionBox">
                 <p>Actions</p>
                 <table id="Actions">
-                  <td v-for='(action, index) in actions' v-bind:key='index'>
-                    <div class="tooltip">
-                      <img @click='ClickAction(index, action.duration, action.socketMsg)' :src='action.src' alt='' width='32' :class="{ 'entryselected' : action.enable === true}">
-                      <span class='tooltiptext'>{{action.tooltip}}</span>
-                    </div>
-                  </td>
+                  <tr>
+                    <td v-for='(action, index) in actions' v-bind:key='index'>
+                      <div class="tooltip">
+                        <img @click='ClickAction(index, action.duration, action.socketMsg)' :src='action.src' alt='' width='32' :class="{ 'entryselected' : action.enable === true}">
+                        <span class='tooltiptext'>{{action.tooltip}}</span>
+                      </div>
+                    </td>
+                  </tr>
                 </table>
             </div>
         </article>

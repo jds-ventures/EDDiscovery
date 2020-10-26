@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="wrapper">
+    <div class="grid-wrapper">
         <article>
             <div id="StatusBox">
                 <table id="Status">
@@ -98,22 +98,6 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
 /* Style the article section */
-
-.wrapper
-{
-    clear: both;
-    width: 100%;
-}
-
-/* clear the contents after wrapper.. works better than clearing on next item */
-.wrapper::after
-{
-    content: "";
-    visibility: hidden;
-    height: 0;
-    display: block;
-    clear: both;
-}
 
 /* Common status and action box styling */
 

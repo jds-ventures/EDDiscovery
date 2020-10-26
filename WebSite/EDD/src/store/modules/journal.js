@@ -20,9 +20,20 @@ export const journal = {
 
   // (1). State
   state: {
+    // Journal entries
     data: [],
+    // All journal entries IDs
     keys: [],
-    nextRow: -9999
+    // Default set to -9999 (after latest entry) else it will be the next entries ID to load
+    nextRow: -9999,
+    // Default set to -1 (latest entry) else it will be the first loaded entries ID
+    firstRow: -1,
+    // Stores descriptions to compare against new records and remove duplicates
+    duplicateCheck: {
+      timestamp: null,
+      description: null,
+      information: null
+    }
   },
 
   // (2). Getters
@@ -32,6 +43,9 @@ export const journal = {
     },
     NEXT_ROW: state => {
       return state.nextRow
+    },
+    FIRST_ROW: state => {
+      return state.firstRow
     }
   },
 
@@ -39,15 +53,40 @@ export const journal = {
   mutations: {
     parseJournalRow: (state, payload) => {
       if (!state.keys.includes(payload[0])) {
-        state.keys.push(payload[0]) // update state
+        // New date object from EDD timestamp
+        const date = new Date(payload[1][1])
+
+        // Format timestamp to add a leading 0 if number is less than 10 & building date format
+        const timestamp = function () {
+          if (date.getSeconds() < 10) {
+            return date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + '0' + date.getSeconds()
+          } else {
+            return date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds()
+          }
+        }
+
+        // If the data is the same as the previous entry and there are no notes attached to it then return null and do not add record to the journal
+        if (state.duplicateCheck.timestamp === timestamp() && state.duplicateCheck.description === payload[1][2] && state.duplicateCheck.information === payload[1][3] && payload[1][4] === '') return false
+
+        // Push to state
+        state.keys.push(payload[0])
+
+        // Push to state
         state.data.push({
           id: payload[0],
           image: payload[1][0],
-          t1: payload[1][1],
-          t2: payload[1][2],
-          t3: payload[1][3],
-          t4: payload[1][4]
-        }) // update state
+          timestamp: timestamp(),
+          description: payload[1][2],
+          information: payload[1][3],
+          note: payload[1][4]
+        })
+
+        // FIlters out any duplicated records from EDD main app
+        state.duplicateCheck = {
+          timestamp: timestamp(),
+          description: payload[1][2],
+          information: payload[1][3]
+        }
       }
     },
     resetState: (state) => {
@@ -66,32 +105,32 @@ export const journal = {
       commit('resetState')
     },
     HANDLE_JOURNAL_MESSAGE: ({commit, state}, payload) => {
-      let firstrow = payload.firstrow
+      state.firstrow = payload.firstrow
 
       let rowId = payload.firstrow
 
-      if (firstrow >= 0) {
-        var rows = payload.rows
-        console.log(payload)
-        for (var i = 0; i < rows.length; i++) {
-          var obj = rows[i]
+      if (state.firstrow >= 0) {
+        let journalEntries = payload.rows
 
-          var image = 'http://192.168.0.15:6502' + '/journalicons/' + obj[0] + '.png'
-          var t1 = obj[1]
-          var t2 = obj[2]
-          var t3 = obj[3]
-          var t4 = obj[4]
+        for (let i = 0; i < journalEntries.length; i++) {
+          let journalEntry = journalEntries[i]
 
-          commit('parseJournalRow', [rowId--, [image, t1, t2, t3, t4]])
+          let image = 'http://192.168.0.15:6502' + '/journalicons/' + journalEntry[0] + '.png'
+          let timestamp = journalEntry[1]
+          let description = journalEntry[2]
+          let information = journalEntry[3]
+          let note = journalEntry[4]
+
+          commit('parseJournalRow', [rowId, [image, timestamp, description, information, note]])
           rowId--
         }
 
-        var nextrow = firstrow - rows.length
+        let nextrow = state.firstrow - journalEntries.length
         if (state.nextRow === -9999 || nextrow < state.nextRow) {
           state.nextRow = nextrow
         }
       } else {
-        commit('parseJournalRow', [rowId--, ['', 'No Data', '', '', '']])
+        commit('parseJournalRow', [rowId, ['', 'No Data', '', '', '']])
       }
     }
   }

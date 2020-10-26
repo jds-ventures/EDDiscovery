@@ -77,7 +77,5 @@ export default {
 </script>
 
 <style>
-body {
-  background: black;
-}
+@import './app.css';
 </style>
